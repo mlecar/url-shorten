@@ -10,6 +10,4 @@ public interface UrlShortenRepository extends CrudRepository<UrlShorten, Long> {
 
     List<UrlShorten> findByLongUrl(String longUrl);
 
-    void deleteByShortUrl(String shortUrl);
-
 }
