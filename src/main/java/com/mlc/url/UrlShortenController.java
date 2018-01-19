@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.UnknownHttpStatusCodeException;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -54,29 +52,16 @@ public class UrlShortenController {
         String param = gson.toJson(map);
         HttpEntity<String> entity = new HttpEntity<>(param, headers);
 
-        try {
+        ResponseEntity<String> response = restTemplate.exchange(builder.build().encode().toUri(), HttpMethod.POST, entity, String.class);
 
-            ResponseEntity<String> response = restTemplate.exchange(builder.build().encode().toUri(), HttpMethod.POST, entity, String.class);
+        JsonElement e = gson.fromJson(response.getBody(), JsonElement.class);
+        UrlShorten url = repo.findByShortUrl(e.getAsJsonObject().get("id").getAsString());
 
-            JsonElement e = gson.fromJson(response.getBody(), JsonElement.class);
-            UrlShorten url = repo.findByShortUrl(e.getAsJsonObject().get("id").getAsString());
-
-            if (url == null) {
-                repo.save(new UrlShorten(e.getAsJsonObject().get("longUrl").getAsString(), e.getAsJsonObject().get("id").getAsString()));
-            }
-
-            return new ResponseEntity<String>(e.getAsJsonObject().get("id").getAsString(), HttpStatus.CREATED);
-
-        } catch (HttpStatusCodeException e) {
-            System.out.println(e.getResponseBodyAsString());
-            throw e;
-        } catch (UnknownHttpStatusCodeException e) {
-            System.out.println(e.getResponseBodyAsString());
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+        if (url == null) {
+            repo.save(new UrlShorten(e.getAsJsonObject().get("longUrl").getAsString(), e.getAsJsonObject().get("id").getAsString()));
         }
+
+        return new ResponseEntity<String>(e.getAsJsonObject().get("id").getAsString(), HttpStatus.CREATED);
     }
 
     @GetMapping("/shorten")

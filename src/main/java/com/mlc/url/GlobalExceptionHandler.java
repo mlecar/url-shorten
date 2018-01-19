@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.UnknownHttpStatusCodeException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,6 +37,16 @@ public class GlobalExceptionHandler {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_PLAIN);
         return new ResponseEntity<String>("Server failed to process the request " + e.getMessage(), headers, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ResponseBody
+    @ExceptionHandler({ UnknownHttpStatusCodeException.class, HttpStatusCodeException.class })
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Object handleRestClientException(RestClientResponseException e) throws IOException {
+        log.warn("Error calling google shorten url api", e);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return new ResponseEntity<String>(e.getRawStatusCode() + " - " + e.getResponseBodyAsString(), headers, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ResponseBody
