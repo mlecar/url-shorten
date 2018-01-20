@@ -13,6 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -40,8 +41,11 @@ public class UrlShortenController {
     @Value("${google.api.key}")
     private String googleApiKey;
 
-    @PutMapping("/shorten")
-    public ResponseEntity<String> urlShorten(@RequestParam(value = "longUrl") String longUrl) {
+    @PutMapping(value = "/shorten", consumes = "application/json")
+    public ResponseEntity<String> urlShorten(@RequestBody String body) {
+
+        String longUrl = gson.fromJson(body, JsonElement.class).getAsJsonObject().get("longUrl").getAsString();
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-type", MediaType.APPLICATION_JSON_VALUE);
 
@@ -57,11 +61,12 @@ public class UrlShortenController {
         JsonElement e = gson.fromJson(response.getBody(), JsonElement.class);
         UrlShorten url = repo.findByShortUrl(e.getAsJsonObject().get("id").getAsString());
 
+        UrlShorten urlShorten = new UrlShorten(e.getAsJsonObject().get("longUrl").getAsString(), e.getAsJsonObject().get("id").getAsString());
         if (url == null) {
-            repo.save(new UrlShorten(e.getAsJsonObject().get("longUrl").getAsString(), e.getAsJsonObject().get("id").getAsString()));
+            repo.save(urlShorten);
         }
 
-        return new ResponseEntity<String>(e.getAsJsonObject().get("id").getAsString(), HttpStatus.CREATED);
+        return new ResponseEntity<String>(gson.toJson(urlShorten), HttpStatus.CREATED);
     }
 
     @GetMapping("/shorten")
