@@ -59,7 +59,7 @@ public class UrlShortenController {
         ResponseEntity<String> response = restTemplate.exchange(builder.build().encode().toUri(), HttpMethod.POST, entity, String.class);
 
         JsonElement e = gson.fromJson(response.getBody(), JsonElement.class);
-        UrlShorten url = repo.findByShortUrl(e.getAsJsonObject().get("id").getAsString());
+        UrlShorten url = repo.findOne(e.getAsJsonObject().get("id").getAsString());
 
         UrlShorten urlShorten = new UrlShorten(e.getAsJsonObject().get("longUrl").getAsString(), e.getAsJsonObject().get("id").getAsString());
         if (url == null) {
@@ -71,7 +71,7 @@ public class UrlShortenController {
 
     @GetMapping("/shorten")
     public ResponseEntity<String> getByShortUrl(@RequestParam(value = "shortUrl") String shortUrl) {
-        String jsonList = gson.toJson(repo.findByShortUrl(shortUrl));
+        String jsonList = gson.toJson(repo.findOne(shortUrl));
         return new ResponseEntity<String>(jsonList, HttpStatus.OK);
     }
 
@@ -83,14 +83,14 @@ public class UrlShortenController {
 
     @DeleteMapping("/shorten")
     public ResponseEntity<String> deleteByShortUrl(@RequestParam(value = "shortUrl") String shortUrl) {
-        UrlShorten url = repo.findByShortUrl(shortUrl);
+        UrlShorten url = repo.findOne(shortUrl);
         repo.delete(url);
         return new ResponseEntity<String>(HttpStatus.OK);
     }
 
     @GetMapping("/shorten/go")
     public RedirectView goForShortUrl(@RequestParam(value = "shortUrl") String shortUrl) {
-        UrlShorten url = repo.findByShortUrl(shortUrl);
+        UrlShorten url = repo.findOne(shortUrl);
         return new RedirectView(url.getLongUrl());
     }
 

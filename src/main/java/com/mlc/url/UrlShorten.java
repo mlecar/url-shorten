@@ -1,18 +1,14 @@
 package com.mlc.url;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
 public class UrlShorten {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-    private String longUrl;
     private String shortUrl;
+    private String longUrl;
 
     protected UrlShorten() {
     }
@@ -26,12 +22,9 @@ public class UrlShorten {
         return longUrl;
     }
 
-    public Long getId() {
-        return id;
-    }
-
     @Override
     public String toString() {
-        return "UrlShorten [id=" + id + ", longUrl=" + longUrl + ", shortUrl=" + shortUrl + "]";
+        return "UrlShorten [shortUrl=" + shortUrl + ", longUrl=" + longUrl + "]";
     }
+
 }
